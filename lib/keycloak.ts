@@ -19,7 +19,12 @@ export const initKeycloak = () => {
         isInitialized = true;
         return keycloak
             .init({ onLoad: "check-sso" })
-            .then((authenticated) => authenticated)
+            .then((authenticated) => {
+                if (!authenticated) {
+                    keycloak.login();
+                }
+                return authenticated;
+            })
             .catch((err) => {
                 isInitialized = false;
                 console.error("Failed to initialize Keycloak", err);

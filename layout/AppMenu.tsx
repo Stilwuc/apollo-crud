@@ -24,6 +24,11 @@ const AppMenu = () => {
             icon: "pi pi-th-large",
             items: [
                 {
+                    label: "Merchants",
+                    icon: "pi pi-fw pi-globe",
+                    to: "/apps/merchants",
+                },
+                {
                     label: "Blog",
                     icon: "pi pi-fw pi-comment",
                     items: [
