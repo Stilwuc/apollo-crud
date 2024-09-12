@@ -1,0 +1,13 @@
+export * as administrationEndpointsService from "./administrationEndpoints/index";
+export * as affiliateEndpointsService from "./affiliateEndpoints/index";
+export * as teamEndpointsService from "./teamEndpoints/index";
+export * as merchantEndpointsService from "./merchantEndpoints/index";
+export * as automationService from "./automation/index";
+export * as hunterPayService from "./hunterPay/index";
+export * as iziPayService from "./iziPay/index";
+export * as mostbetService from "./mostbet/index";
+export * as ordersService from "./orders/index";
+export * as p2PUsdtService from "./p2PUsdt/index";
+export * as paymentFormService from "./paymentForm/index";
+export * as stubService from "./stub/index";
+export * as supportEndpointsService from "./supportEndpoints/index";
