@@ -16,6 +16,37 @@ import AppProfileSidebar from "./AppProfileSidebar";
 import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
 import { LayoutContext } from "./context/layoutcontext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const makeQueryClient = () => {
+    return new QueryClient({
+        defaultOptions: {
+            queries: {
+                refetchOnMount: true,
+                refetchOnReconnect: true,
+                // With SSR, we usually want to set some default staleTime
+                // above 0 to avoid refetching immediately on the client
+                staleTime: 1000,
+            },
+        },
+    });
+};
+
+let browserQueryClient: QueryClient | undefined = undefined;
+
+function getQueryClient() {
+    if (typeof window === "undefined") {
+        // Server: always make a new query client
+        return makeQueryClient();
+    } else {
+        // Browser: make a new query client if we don't already have one
+        // This is very important, so we don't re-make a new client if React
+        // suspends during the initial render. This may not be needed if we
+        // have a suspense boundary BELOW the creation of the query client
+        if (!browserQueryClient) browserQueryClient = makeQueryClient();
+        return browserQueryClient;
+    }
+}
 
 const Layout = (props: ChildContainerProps) => {
     const {
@@ -193,6 +224,8 @@ const Layout = (props: ChildContainerProps) => {
         "layout-sidebar-anchored": layoutState.anchored,
     });
 
+    const queryClient = getQueryClient();
+
     return (
         <React.Fragment>
             <div className={classNames("layout-container", containerClass)}>
@@ -208,7 +241,11 @@ const Layout = (props: ChildContainerProps) => {
                     <AppTopbar ref={topbarRef} />
 
                     <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>
-                    <div className="layout-content">{props.children}</div>
+                    <div className="layout-content">
+                        <QueryClientProvider client={queryClient}>
+                            {props.children}{" "}
+                        </QueryClientProvider>
+                    </div>
                 </div>
                 <AppProfileSidebar />
                 <AppConfig />
