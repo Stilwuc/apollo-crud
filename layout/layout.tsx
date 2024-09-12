@@ -1,5 +1,8 @@
 "use client";
+import { AuthProvider } from "@/layout/context/authcontext";
+import { usePortalStore } from "@/lib/portal";
 import type { AppTopbarRef, ChildContainerProps } from "@/types";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname, useSearchParams } from "next/navigation";
 import PrimeReact from "primereact/api";
 import {
@@ -8,15 +11,18 @@ import {
     useResizeListener,
     useUnmountEffect,
 } from "primereact/hooks";
+import { Toast } from "primereact/toast";
 import { DomHandler, classNames } from "primereact/utils";
 import React, { useCallback, useContext, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import AppBreadCrumb from "./AppBreadCrumb";
 import AppConfig from "./AppConfig";
 import AppProfileSidebar from "./AppProfileSidebar";
 import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
 import { LayoutContext } from "./context/layoutcontext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+export let globalToast: Toast;
 
 const makeQueryClient = () => {
     return new QueryClient({
@@ -62,6 +68,7 @@ const Layout = (props: ChildContainerProps) => {
     const sidebarRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const portalElements = usePortalStore((state) => state.portalElements);
     const [bindMenuOutsideClickListener, unbindMenuOutsideClickListener] =
         useEventListener({
             type: "click",
@@ -228,29 +235,38 @@ const Layout = (props: ChildContainerProps) => {
 
     return (
         <React.Fragment>
-            <div className={classNames("layout-container", containerClass)}>
-                <div
-                    ref={sidebarRef}
-                    className="layout-sidebar"
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                >
-                    <AppSidebar />
-                </div>
-                <div className="layout-content-wrapper">
-                    <AppTopbar ref={topbarRef} />
-
-                    <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>
-                    <div className="layout-content">
-                        <QueryClientProvider client={queryClient}>
-                            {props.children}{" "}
-                        </QueryClientProvider>
+            <AuthProvider>
+                <div className={classNames("layout-container", containerClass)}>
+                    <div
+                        ref={sidebarRef}
+                        className="layout-sidebar"
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                    >
+                        <AppSidebar />
                     </div>
+                    <div className="layout-content-wrapper">
+                        <AppTopbar ref={topbarRef} />
+
+                        <AppBreadCrumb className="content-breadcrumb"></AppBreadCrumb>
+                        <div className="layout-content">
+                            <QueryClientProvider client={queryClient}>
+                                {props.children}
+                                {portalElements.map((pElement) =>
+                                    createPortal(
+                                        pElement.component,
+                                        pElement.target
+                                    )
+                                )}
+                            </QueryClientProvider>
+                        </div>
+                    </div>
+                    <AppProfileSidebar />
+                    <Toast ref={(ref) => (globalToast = ref!)} />
+                    <AppConfig />
+                    <div className="layout-mask"></div>
                 </div>
-                <AppProfileSidebar />
-                <AppConfig />
-                <div className="layout-mask"></div>
-            </div>
+            </AuthProvider>
         </React.Fragment>
     );
 };

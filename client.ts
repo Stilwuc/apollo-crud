@@ -1,3 +1,4 @@
+import { keycloak } from "@/lib/keycloak";
 import axios from "axios";
 
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
@@ -32,6 +33,7 @@ export type ResponseConfig<TData = unknown> = {
 
 export const axiosInstance = axios.create({
     withCredentials: true,
+    baseURL: "/api",
     paramsSerializer: (params) => {
         const searchParams = new URLSearchParams();
         for (const key of Object.keys(params)) {
@@ -45,6 +47,44 @@ export const axiosInstance = axios.create({
         return searchParams.toString();
     },
 });
+
+axiosInstance.interceptors.request.use(
+    (config) => {
+        if (keycloak.token) {
+            config.headers["Authorization"] = `Bearer ${keycloak.token}`;
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+axiosInstance.interceptors.response.use(
+    (res) => {
+        return res;
+    },
+    async (error) => {
+        const oriConfig = error.config;
+
+        if (error.response?.status === 401 && !oriConfig._retry) {
+            oriConfig._retry = true;
+
+            try {
+                // Refresh token then retry once
+                return axiosInstance(oriConfig);
+            } catch (_error) {
+                console.error("Refresh token failed");
+                console.error(_error);
+
+                return Promise.reject(_error);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export const api = async <TData, TError = unknown, TVariables = unknown>(
     config: AxiosRequestConfig<TVariables>
