@@ -27,7 +27,7 @@ import { AxiosError } from "axios";
 export default function MerchantsTable() {
     // @TODO: добавить поддержку сортировки + фильтраций по колонкам
     const [filter, setFilter] = useQueryStates({
-        pageNumber: parseAsInteger.withDefault(1),
+        pageNumber: parseAsInteger.withDefault(0),
         pageSize: parseAsInteger.withDefault(DEFAULT_PAGE_SIZE),
         name: parseAsString,
     });
@@ -146,6 +146,7 @@ export default function MerchantsTable() {
                 onPage={(paginationData: DataTableStateEvent) =>
                     setFilter({
                         pageNumber: paginationData.page,
+                        pageSize: paginationData.rows,
                     })
                 }
                 paginator

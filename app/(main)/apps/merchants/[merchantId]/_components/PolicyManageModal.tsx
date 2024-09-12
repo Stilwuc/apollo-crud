@@ -315,7 +315,7 @@ export const PolicyManageModal: FC<PolicyManageModalProps> = (props) => {
                                     })
                                 }
                                 mode="currency"
-                                min={23}
+                                min={0}
                                 showButtons
                                 currency="USD"
                                 locale="en-US"
